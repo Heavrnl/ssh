@@ -3,9 +3,15 @@
 # 备份现有的SSH配置
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
-# 生成一个随机的SSH端口号
-port=$(shuf -i 20000-60000 -n 1)
-# port=42662
+# 提示用户输入端口号
+read -p "请输入希望使用的SSH端口号（直接回车则随机分配）: " port_input
+
+# 如果没有输入端口号，则生成一个随机端口号
+if [ -z "$port_input" ]; then
+    port=$(shuf -i 20000-60000 -n 1)
+else
+    port=$port_input
+fi
 
 # 如果SSH密钥不存在，则生成SSH密钥
 if [ ! -f ~/.ssh/id_rsa ]; then
