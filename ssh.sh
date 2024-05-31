@@ -35,7 +35,10 @@ sudo systemctl restart sshd
 
 # 检查SSH服务是否正在运行
 if systemctl is-active --quiet sshd; then
-   echo -e "SSH端口已更改为 $port。\n请检查防火墙确保端口 $port 已打开。\n已启用基于密钥的身份验证，已禁用密码身份验证。\n不要忘记保存私钥文件。"
+   # 输出私钥内容
+   echo "私钥内容如下:"
+   cat ~/.ssh/id_rsa
+   echo -e "\nSSH端口已更改为 $port。\n请检查防火墙确保端口 $port 已打开。\n已启用基于密钥的身份验证，已禁用密码身份验证。\n不要忘记保存私钥文件。"
 else
 # SSH服务启动失败，恢复原始配置并显示错误消息
    echo "错误：SSH服务启动失败。正在恢复原始配置..."
