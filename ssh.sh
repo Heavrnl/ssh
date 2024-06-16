@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# 检查是否具有sudo权限
+if ! command -v sudo &> /dev/null; then
+    echo "未找到sudo命令，正在尝试安装..."
+    su -c "apt-get update && apt-get install -y sudo"
+    if ! command -v sudo &> /dev/null; then
+        echo "错误：无法安装sudo。请手动安装并重试。"
+        exit 1
+    fi
+fi
+
+# 检查是否具有shuf命令
+if ! command -v shuf &> /dev/null; then
+    echo "未找到shuf命令，正在尝试安装..."
+    sudo apt-get update && sudo apt-get install -y coreutils
+    if ! command -v shuf &> /dev/null; then
+        echo "错误：无法安装shuf。请手动安装并重试。"
+        exit 1
+    fi
+fi
+
 # 备份现有的SSH配置
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
@@ -35,17 +55,17 @@ sudo systemctl restart sshd
 
 # 检查SSH服务是否正在运行
 if systemctl is-active --quiet sshd; then
-   # 输出私钥内容
-   echo "私钥内容如下:"
-   cat ~/.ssh/id_rsa
-   echo -e "\nSSH端口已更改为 $port。\n请检查防火墙确保端口 $port 已打开。\n已启用基于密钥的身份验证，已禁用密码身份验证。\n不要忘记保存私钥文件。"
+    # 输出私钥内容
+    echo "私钥内容如下:"
+    cat ~/.ssh/id_rsa
+    echo -e "\nSSH端口已更改为 $port。\n请检查防火墙确保端口 $port 已打开。\n已启用基于密钥的身份验证，已禁用密码身份验证。\n不要忘记保存私钥文件。"
 else
-# SSH服务启动失败，恢复原始配置并显示错误消息
-   echo "错误：SSH服务启动失败。正在恢复原始配置..."
-   sudo cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
-   sudo systemctl restart sshd
-   echo "SSH服务已恢复到原始配置。"
-   exit 1
+    # SSH服务启动失败，恢复原始配置并显示错误消息
+    echo "错误：SSH服务启动失败。正在恢复原始配置..."
+    sudo cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+    echo "SSH服务已恢复到原始配置。"
+    exit 1
 fi
 
 # 删除SSH配置的备份（可选）
