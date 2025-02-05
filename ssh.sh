@@ -1,72 +1,80 @@
 #!/bin/bash
 
-# 检查是否具有sudo权限
-if ! command -v sudo &> /dev/null; then
-    echo "未找到sudo命令，正在尝试安装..."
+# 确保具有 sudo 权限
+if ! command -v sudo &>/dev/null; then
+    echo "未找到 sudo 命令，正在尝试安装..."
     su -c "apt-get update && apt-get install -y sudo"
-    if ! command -v sudo &> /dev/null; then
-        echo "错误：无法安装sudo。请手动安装并重试。"
+    if ! command -v sudo &>/dev/null; then
+        echo "错误：无法安装 sudo，请手动安装后重试。"
         exit 1
     fi
 fi
 
-# 检查是否具有shuf命令
-if ! command -v shuf &> /dev/null; then
-    echo "未找到shuf命令，正在尝试安装..."
+# 确保 shuf 命令可用
+if ! command -v shuf &>/dev/null; then
+    echo "未找到 shuf 命令，正在尝试安装 coreutils..."
     sudo apt-get update && sudo apt-get install -y coreutils
-    if ! command -v shuf &> /dev/null; then
-        echo "错误：无法安装shuf。请手动安装并重试。"
+    if ! command -v shuf &>/dev/null; then
+        echo "错误：无法安装 shuf，请手动安装 coreutils 并重试。"
         exit 1
     fi
 fi
 
-# 备份现有的SSH配置
+# 备份 SSH 配置
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
 # 提示用户输入端口号
-read -p "请输入希望使用的SSH端口号（直接回车则随机分配）: " port_input
+read -p "请输入希望使用的 SSH 端口号（直接回车则随机分配）: " port_input
 
-# 如果没有输入端口号，则生成一个随机端口号
+# 端口号验证
 if [ -z "$port_input" ]; then
     port=$(shuf -i 20000-60000 -n 1)
 else
+    if [[ ! "$port_input" =~ ^[0-9]+$ ]] || [ "$port_input" -lt 1 ] || [ "$port_input" -gt 65535 ]; then
+        echo "错误：无效端口号 '$port_input'，请输入 1-65535 之间的数字。"
+        exit 1
+    fi
     port=$port_input
 fi
 
-# 如果SSH密钥不存在，则生成SSH密钥
+# 确保 SSH 密钥存在
 if [ ! -f ~/.ssh/id_rsa ]; then
-    echo "正在生成SSH密钥..."
+    echo "正在生成 SSH 密钥..."
     ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
 fi
 
-# 将SSH密钥添加到授权密钥中
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+# 避免重复添加 SSH 公钥
+if ! grep -qF "$(cat ~/.ssh/id_rsa.pub)" ~/.ssh/authorized_keys; then
+    cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+fi
+
 chmod 600 ~/.ssh/authorized_keys
 chmod 700 ~/.ssh
 
-# 更新SSH配置
+# 更新 SSH 配置
 sudo sed -i 's/^#\?\(PubkeyAuthentication\s*\).*$/\1yes/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(PasswordAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(ChallengeResponseAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
-sudo sed -i "s/^#\?\\(Port\\s*\\).*$/\\1$port/" /etc/ssh/sshd_config
+sudo sed -i "s/^#\?Port .*/Port $port/" /etc/ssh/sshd_config
 
-# 重启SSH服务
+# 重启 SSH 服务
 sudo systemctl restart sshd
 
-# 检查SSH服务是否正在运行
+# 检查 SSH 是否成功启动
 if systemctl is-active --quiet sshd; then
-    # 输出私钥内容
-    echo "私钥内容如下:"
+    echo "SSH 端口已更改为 $port。"
+    echo "请检查防火墙确保端口 $port 已打开。"
+    echo "已启用基于密钥的身份验证，已禁用密码身份验证。"
+    echo "私钥内容如下，请妥善保存："
     cat ~/.ssh/id_rsa
-    echo -e "\nSSH端口已更改为 $port。\n请检查防火墙确保端口 $port 已打开。\n已启用基于密钥的身份验证，已禁用密码身份验证。\n不要忘记保存私钥文件。"
 else
-    # SSH服务启动失败，恢复原始配置并显示错误消息
-    echo "错误：SSH服务启动失败。正在恢复原始配置..."
+    echo "错误：SSH 服务启动失败，正在恢复原始配置..."
     sudo cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
     sudo systemctl restart sshd
-    echo "SSH服务已恢复到原始配置。"
+    echo "SSH 服务已恢复到原始配置。"
+    echo "请检查 /var/log/auth.log 或运行 journalctl -xe 以获取详细错误信息。"
     exit 1
 fi
 
-# 删除SSH配置的备份（可选）
+# 删除 SSH 配置备份（可选）
 # sudo rm /etc/ssh/sshd_config.bak
