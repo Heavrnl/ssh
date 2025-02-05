@@ -19,8 +19,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 -----END OPENSSH PRIVATE KEY-----
 
-SSH端口已更改为 12788。
-请检查防火墙确保端口 12788 已打开。
+SSH端口已更改为 22788。
+请检查防火墙确保端口 22788 已打开。
 已启用基于密钥的身份验证，已禁用密码身份验证。
 不要忘记保存私钥文件。
 
