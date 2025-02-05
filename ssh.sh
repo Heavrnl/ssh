@@ -10,7 +10,7 @@ if ! command -v sudo &>/dev/null; then
     fi
 fi
 
-# 确保 shuf 命令可用
+# 确保 shuf 可用
 if ! command -v shuf &>/dev/null; then
     echo "未找到 shuf 命令，正在尝试安装 coreutils..."
     sudo apt-get update && sudo apt-get install -y coreutils
@@ -26,14 +26,43 @@ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 # 提示用户输入端口号
 read -p "请输入希望使用的 SSH 端口号（直接回车则随机分配）: " port_input
 
-# 端口号验证
+# 端口号验证函数
+is_port_free() {
+    local port=$1
+    if ss -tuln | grep -q ":$port "; then
+        return 1 # 端口被占用
+    else
+        return 0 # 端口可用
+    fi
+}
+
+# 选择端口号
 if [ -z "$port_input" ]; then
-    port=$(shuf -i 20000-60000 -n 1)
+    # 生成随机端口，确保未被占用
+    for _ in {1..10}; do
+        port=$(shuf -i 20000-60000 -n 1)
+        if is_port_free "$port"; then
+            break
+        fi
+    done
+
+    # 如果尝试10次仍未找到可用端口，退出
+    if ! is_port_free "$port"; then
+        echo "错误：无法找到可用的随机端口，请手动输入端口号。"
+        exit 1
+    fi
 else
     if [[ ! "$port_input" =~ ^[0-9]+$ ]] || [ "$port_input" -lt 1 ] || [ "$port_input" -gt 65535 ]; then
         echo "错误：无效端口号 '$port_input'，请输入 1-65535 之间的数字。"
         exit 1
     fi
+
+    # 用户输入的端口也需要检查是否被占用
+    if ! is_port_free "$port_input"; then
+        echo "错误：端口 $port_input 已被占用，请选择其他端口。"
+        exit 1
+    fi
+
     port=$port_input
 fi
 
