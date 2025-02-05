@@ -98,6 +98,7 @@ if systemctl is-active --quiet sshd; then
     echo "SSH 端口已更改为 $port。"
     echo "请检查防火墙确保端口 $port 已打开。"
     echo "已启用基于密钥的身份验证，已禁用密码身份验证。"
+    echo "不要忘记保存私钥文件。"
 else
     echo "错误：SSH 服务启动失败，正在恢复原始配置..."
     sudo cp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
