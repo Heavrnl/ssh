@@ -91,10 +91,9 @@ sudo systemctl restart sshd
 
 # 检查 SSH 是否成功启动
 if systemctl is-active --quiet sshd; then
-    echo "私钥内容如下，请妥善保存："
-    echo
+    printf "私钥内容如下，请妥善保存：\n\n"
     stdbuf -oL cat ~/.ssh/id_rsa
-    echo
+    printf "\n"
     echo "SSH 端口已更改为 $port。"
     echo "请检查防火墙确保端口 $port 已打开。"
     echo "已启用基于密钥的身份验证，已禁用密码身份验证。"
