@@ -34,7 +34,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 -----END OPENSSH PRIVATE KEY-----
-
+```
 添加公钥
 ```
 bash <(curl -Lso- https://raw.githubusercontent.com/Heavrnl/ssh/refs/heads/main/add_ssh_key.sh)
