@@ -40,5 +40,10 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 bash <(curl -Lso- https://raw.githubusercontent.com/Heavrnl/ssh/refs/heads/main/add_ssh_key.sh)
 ```
 
+ssh连接
+```
+bash <(curl -Lso- https://raw.githubusercontent.com/Heavrnl/ssh/refs/heads/main/ssh_connect.sh)
+```
+
 
 
