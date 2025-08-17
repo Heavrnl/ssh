@@ -87,7 +87,7 @@ sudo sed -i 's/^#\?\(PubkeyAuthentication\s*\).*$/\1yes/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(PasswordAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(ChallengeResponseAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
 sudo sed -i "s/^#\?Port .*/Port $port/" /etc/ssh/sshd_config
-sudo rm /etc/ssh/sshd_config.d/01-permitrootlogin.conf
+sudo rm -rf /etc/ssh/sshd_config.d/
 # 重启 SSH 服务
 sudo systemctl restart sshd
 
