@@ -23,6 +23,8 @@ fi
 # 备份 SSH 配置
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
+
+
 # 提示用户输入端口号
 read -p "请输入希望使用的 SSH 端口号（直接回车则随机分配）: " port_input
 
@@ -85,7 +87,7 @@ sudo sed -i 's/^#\?\(PubkeyAuthentication\s*\).*$/\1yes/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(PasswordAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
 sudo sed -i 's/^#\?\(ChallengeResponseAuthentication\s*\).*$/\1no/' /etc/ssh/sshd_config
 sudo sed -i "s/^#\?Port .*/Port $port/" /etc/ssh/sshd_config
-
+sudo rm /etc/ssh/sshd_config.d/01-permitrootlogin.conf
 # 重启 SSH 服务
 sudo systemctl restart sshd
 
